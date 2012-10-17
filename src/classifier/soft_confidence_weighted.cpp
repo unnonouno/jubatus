@@ -79,6 +79,7 @@ void soft_confidence_weighted::train(const sfv_t& sfv, const string& label) {
 }
 
 double soft_confidence_weighted::calc_alpha(double m, double v) const {
+  // TODO set hyper parameter
   switch (penalty_) {
     case NONE:
       return calc_alpha_0(C_, m, v);
