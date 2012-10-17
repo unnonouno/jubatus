@@ -53,21 +53,6 @@ TYPED_TEST_P(classifier_test, trivial) {
   ASSERT_EQ(2u, scores.size());
 }
 
-TYPED_TEST_P(classifier_test, sfv_err) {
-  local_storage s;
-  TypeParam p(&s);
-  sfv_t fv;
-  fv.push_back(make_pair(string("f1"), 0.0));
-  p.train(fv, string("label1")); 
-  fv.push_back(make_pair(string("f2"), 1.0));
-  p.train(fv, string("label2"));
-  classify_result scores;
-  p.classify_with_scores(fv, scores);
-  ASSERT_EQ(1u, scores.size());
-//  <FIXME>why not 
-//  ASSERT_EQ(2u, scores.size());
-}
-
 sfv_t convert(vector<double>& v) {
   sfv_t fv;
   for (size_t i = 0; i < v.size(); ++i) {
@@ -118,9 +103,9 @@ TYPED_TEST_P(classifier_test, random3) {
 }
 
 REGISTER_TYPED_TEST_CASE_P(classifier_test,
-                           trivial, sfv_err, random, random3);
+                           trivial, random, random3);
 
-typedef testing::Types<perceptron, PA, PA1, PA2, CW, AROW, NHERD> classifier_types;
+typedef testing::Types<perceptron, PA, PA1, PA2, CW, AROW, NHERD, soft_confidence_weighted> classifier_types;
 
 INSTANTIATE_TYPED_TEST_CASE_P(cl, classifier_test, classifier_types);
 
@@ -134,6 +119,7 @@ void InitClassifiers(vector<classifier_base*>& classifiers){
   classifiers.push_back(classifier_factory::create_classifier("CW", new local_storage));
   classifiers.push_back(classifier_factory::create_classifier("AROW", new local_storage));
   classifiers.push_back(classifier_factory::create_classifier("NHERD", new local_storage));
+  classifiers.push_back(classifier_factory::create_classifier("SCW", new local_storage));
   for (size_t i = 0; i < classifiers.size(); ++i){
     classifiers[i]->set_C(1.0);
   }

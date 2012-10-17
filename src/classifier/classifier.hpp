@@ -22,3 +22,4 @@
 #include "cw.hpp"
 #include "arow.hpp"
 #include "nherd.hpp"
+#include "soft_confidence_weighted.hpp"

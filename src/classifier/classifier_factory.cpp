@@ -37,6 +37,9 @@ classifier_base* classifier_factory::create_classifier(const std::string& name, 
     return static_cast<classifier_base*>(new AROW(storage));
   } else if (name == "NHERD"){
     return static_cast<classifier_base*>(new NHERD(storage));
+  } else if (name == "SCW"){
+    // TODO set penalty type
+    return static_cast<classifier_base*>(new soft_confidence_weighted(storage));
   } else {
     throw JUBATUS_EXCEPTION(unsupported_method(name));
   }
