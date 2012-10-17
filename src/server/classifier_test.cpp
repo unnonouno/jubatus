@@ -94,6 +94,8 @@ config_data make_empty_config(const string& method) {
 void load_config(jubatus::config_data& c){
   fv_converter::converter_config cc;
   ifstream ifs("./test_input/config.json");
+  if (!ifs)
+    throw std::runtime_error("cannot open config file: ./test_input/config.json");
   ifs >> via_json_with_default(cc);
   //string data((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
   c.method = "PA";
@@ -334,7 +336,7 @@ TEST_P(classifier_test, duplicated_keys){
 
 INSTANTIATE_TEST_CASE_P(classifier_test_instance,
                         classifier_test,
-                        testing::Values("PA", "PA1", "PA2", "CW", "AROW", "NHERD"));
+                        testing::Values("PA", "PA1", "PA2", "CW", "AROW", "NHERD", "SCW"));
 
   //FIXME: can't link classifier_serv
 // TEST(mix_parameter, trivial) {
@@ -485,8 +487,8 @@ TEST_P(classifier_test, nan){
   test.push_back(d);
   vector<vector<estimate_result> > result = cli.classify(NAME, test);
   ASSERT_EQ(1u, result.size());
-  ASSERT_EQ(1u, result[0].size());
-  EXPECT_FALSE(isfinite(result[0][0].prob));
+  for (size_t i = 0; result[0].size(); ++i)
+    EXPECT_FALSE(isfinite(result[0][i].prob));
 }
 
 }
