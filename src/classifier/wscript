@@ -13,6 +13,7 @@ def build(bld):
 	cw.cpp	
 	arow.cpp
 	nherd.cpp
+        logistic_regression.cpp
         classifier_factory.cpp
 	''',
     target = 'jubatus_classifier',

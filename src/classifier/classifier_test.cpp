@@ -120,7 +120,7 @@ TYPED_TEST_P(classifier_test, random3) {
 REGISTER_TYPED_TEST_CASE_P(classifier_test,
                            trivial, sfv_err, random, random3);
 
-typedef testing::Types<perceptron, PA, PA1, PA2, CW, AROW, NHERD> classifier_types;
+typedef testing::Types<perceptron, PA, PA1, PA2, CW, AROW, NHERD, logistic_regression> classifier_types;
 
 INSTANTIATE_TYPED_TEST_CASE_P(cl, classifier_test, classifier_types);
 
