@@ -19,10 +19,18 @@
 #include <string>
 #include "exception.hpp"
 #include "dynamic_num_feature.hpp"
+#include "tanh_feature.hpp"
 #include "util.hpp"
 
 namespace jubatus {
 namespace fv_converter {
+
+num_feature* create_tanh_feature(
+    const num_feature_factory::param_t& params) {
+  double center = get_double_or_die(params, "center");
+  double gradient = get_double_or_die(params, "gradient");
+  return new tanh_feature(center, gradient);
+}
 
 num_feature* create_dynamic_num_feature(
     const num_feature_factory::param_t& params) {
@@ -34,7 +42,9 @@ num_feature* create_dynamic_num_feature(
 num_feature* num_feature_factory::create(
     const std::string& name,
     const num_feature_factory::param_t& params) const {
-  if (name == "dynamic") {
+  if (name == "tanh") {
+    return create_tanh_feature(params);
+  } else if (name == "dynamic") {
     return create_dynamic_num_feature(params);
   } else {
     throw JUBATUS_EXCEPTION(

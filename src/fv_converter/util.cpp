@@ -59,5 +59,17 @@ int get_int_or_die(
   }
 }
 
+double get_double_or_die(
+    const std::map<std::string, std::string>& params,
+    const std::string& key) {
+  const std::string& s = get_or_die(params, key);
+  try {
+    return pfi::lang::lexical_cast<double>(s);
+  } catch (const std::bad_cast& e) {
+    throw JUBATUS_EXCEPTION(converter_exception(
+        std::string("\"" + key + "\" must be a double value: " + s)));
+  }
+}
+
 }  // namespace fv_converter
 }  // namespace jubatus
