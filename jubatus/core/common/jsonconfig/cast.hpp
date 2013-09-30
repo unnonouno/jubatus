@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include <pficommon/data/unordered_map.h>
@@ -34,15 +35,41 @@ namespace jsonconfig {
 
 typedef std::vector<pfi::lang::shared_ptr<config_error> > config_error_list;
 
+class member_collector {
+ public:
+  void append(const std::string& name) {
+    members_.push_back(name);
+  }
+
+  const std::vector<std::string>& get_members() const {
+    return members_;
+  }
+
+ private:
+  std::vector<std::string> members_;
+};
+
+template <typename T>
+inline void serialize(
+    member_collector& mem,
+    pfi::data::serialization::named_value<T>& v) {
+  mem.append(v.name);
+}
+
 class json_config_iarchive_cast {
  public:
   explicit json_config_iarchive_cast(const config& js)
       : js_(js),
-        errors_(NULL) {
+        errors_(NULL),
+        warnings_(NULL) {
   }
-  json_config_iarchive_cast(const config& js, config_error_list* errors)
+  json_config_iarchive_cast(
+      const config& js,
+      config_error_list* errors,
+      config_error_list* warnings)
       : js_(js),
-        errors_(errors) {
+        errors_(errors),
+        warnings_(warnings) {
   }
 
   const config& get_config() const {
@@ -56,6 +83,10 @@ class json_config_iarchive_cast {
     return errors_;
   }
 
+  bool trace_warning() const {
+    return warnings_;
+  }
+
   template<class T>
   void push_error(const T& e) {
     if (errors_) {
@@ -63,13 +94,25 @@ class json_config_iarchive_cast {
     }
   }
 
+  template<class T>
+  void push_warning(const T& e) {
+    if (warnings_) {
+      warnings_->push_back(pfi::lang::shared_ptr<config_error>(new T(e)));
+    }
+  }
+
   config_error_list* errors() const {
     return errors_;
+  }
+
+  config_error_list* warnings() const {
+    return warnings_;
   }
 
  private:
   const config& js_;
   config_error_list* errors_;
+  config_error_list* warnings_;
 };
 
 template <typename T>
@@ -80,7 +123,21 @@ void json_from_config(const config& conf, T& v, json_config_iarchive_cast& js);
 
 template <typename T>
 inline void serialize(json_config_iarchive_cast& js, T& v) {
-  // TODO(unnno): insert typecheck
+  if (js.warnings()) {
+    member_collector collector;
+    pfi::data::serialization::access::serialize(collector, v);
+    std::set<std::string> members(collector.get_members().begin(),
+                                  collector.get_members().end());
+    for (pfi::text::json::json::const_iterator it = js.get().begin();
+         it != js.get().end(); ++it) {
+      const std::string& key = it->first;
+      if (members.count(key) == 0) {
+        redundant_key e(js.get_config().path(), key);
+        js.push_warning(e);
+      }
+    }
+  }
+
   pfi::data::serialization::access::serialize(js, v);
 }
 
@@ -152,7 +209,7 @@ inline void serialize(json_config_iarchive_cast& js, std::vector<T>& vs) {
   size_t size = js.get_config().size();
   std::vector<T> v(size);
   for (size_t i = 0; i < size; ++i) {
-    json_from_config(js.get_config()[i], v[i], js.errors());
+    json_from_config(js.get_config()[i], v[i], js.errors(), js.warnings());
   }
   vs.swap(v);
 }
@@ -168,7 +225,7 @@ inline void serialize(json_config_iarchive_cast& js, std::map<K, V>& m) {
   for (iter_t it = js.get_config().begin(), end = js.get_config().end();
       it != end; ++it) {
     V value;
-    json_from_config(it.value(), value, js.errors());
+    json_from_config(it.value(), value, js.errors(), js.warnings());
     tmp[it.key()] = value;
   }
   tmp.swap(m);
@@ -187,7 +244,7 @@ inline void serialize(
   for (iter_t it = js.get_config().begin(), end = js.get_config().end();
       it != end; ++it) {
     V value;
-    json_from_config(it.value(), value, js.errors());
+    json_from_config(it.value(), value, js.errors(), js.warnings());
     tmp[it.key()] = value;
   }
   tmp.swap(m);
@@ -201,7 +258,7 @@ inline void serialize(
   if (js.get_config().contain(v.name)
       && (js.get_config()[v.name].get().type() != json::Null)) {
     T value;
-    json_from_config(js.get_config()[v.name], value, js.errors());
+    json_from_config(js.get_config()[v.name], value, js.errors(), js.warnings());
     v.v = value;
   } else {
     // optional can be null
@@ -213,7 +270,7 @@ template <typename T>
 inline void serialize(json_config_iarchive_cast& js,
                       pfi::data::serialization::named_value<T>& v) {
   if (js.get_config().contain(v.name)) {
-    json_from_config(js.get_config()[v.name], v.v, js.errors());
+    json_from_config(js.get_config()[v.name], v.v, js.errors(), js.warnings());
   } else {
     not_found e(js.get_config().path(), v.name);
     if (js.trace_error()) {
@@ -241,8 +298,12 @@ void json_from_config(const config& conf, T& v) {
 }
 
 template <typename T>
-void json_from_config(const config& conf, T& v, config_error_list* errors) {
-  json_config_iarchive_cast cast(conf, errors);
+void json_from_config(
+    const config& conf,
+    T& v,
+    config_error_list* errors,
+    config_error_list* warnings) {
+  json_config_iarchive_cast cast(conf, errors, warnings);
   serialize(cast, v);
 }
 
@@ -254,18 +315,20 @@ T config_cast(const config& c) {
 }
 
 template <class T>
-T config_cast(const config& c, config_error_list& errors) {
+T config_cast(
+    const config& c,
+    config_error_list& errors) {
   T value;
-  json_config_iarchive_cast cast(c, &errors);
+  json_config_iarchive_cast cast(c, &errors, 0);
   serialize(cast, value);
   return value;
 }
 
 template <class T>
-T config_cast_check(const config& c) {
+T config_cast_check(const config& c, config_error_list* warnings=0) {
   config_error_list errors;
   T value;
-  json_config_iarchive_cast cast(c, &errors);
+  json_config_iarchive_cast cast(c, &errors, warnings);
   serialize(cast, value);
   if (!errors.empty()) {
     throw JUBATUS_EXCEPTION(cast_check_error(errors));

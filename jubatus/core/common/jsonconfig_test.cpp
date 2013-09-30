@@ -483,6 +483,16 @@ TEST(jsonconfig_cast, cast_check_error) {
   }
 }
 
+TEST(josnconfig_cast, cast_check_warning) {
+  config conf(lexical_cast<json>(
+      "{\"web_server\": { \"host\" : \"localhost\", \"port\": 80, \"test\": 1}, \"users\": [\"abc\"]}"));
+  config_error_list warnings;
+  config_cast_check<server_conf>(conf, &warnings);
+
+  ASSERT_EQ(1u, warnings.size());
+  EXPECT_EQ(".web_server", warnings[0]->path());
+}
+
 }  // namespace jsonconfig
 }  // namespace common
 }  // namespace core
