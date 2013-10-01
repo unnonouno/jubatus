@@ -19,7 +19,6 @@
 
 #include <string>
 #include <pficommon/lang/shared_ptr.h>
-#include <pficommon/text/json.h>
 
 namespace jubatus {
 namespace core {

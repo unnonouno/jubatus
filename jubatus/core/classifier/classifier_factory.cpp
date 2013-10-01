@@ -42,19 +42,19 @@ shared_ptr<classifier_base> classifier_factory::create_classifier(
     return shared_ptr<classifier_base>(new passive_aggressive(storage));
   } else if (name == "PA1" || name == "passive_aggressive_1") {
     return shared_ptr<classifier_base>(new passive_aggressive_1(
-        config_cast_check<classifier_config>(param), storage));
+        config_cast_check<classifier_config>(param, 0), storage));
   } else if (name == "PA2" || name == "passive_aggressive_2") {
     return shared_ptr<classifier_base>(new passive_aggressive_2(
-        config_cast_check<classifier_config>(param), storage));
+        config_cast_check<classifier_config>(param, 0), storage));
   } else if (name == "CW" || name == "confidence_weighted") {
     return shared_ptr<classifier_base>(new confidence_weighted(
-        config_cast_check<classifier_config>(param), storage));
+        config_cast_check<classifier_config>(param, 0), storage));
   } else if (name == "AROW" || name == "arow") {
     return shared_ptr<classifier_base>(new arow(
-        config_cast_check<classifier_config>(param), storage));
+        config_cast_check<classifier_config>(param, 0), storage));
   } else if (name == "NHERD" || name == "normal_herd") {
     return shared_ptr<classifier_base>(new normal_herd(
-        config_cast_check<classifier_config>(param), storage));
+        config_cast_check<classifier_config>(param, 0), storage));
   } else {
     throw JUBATUS_EXCEPTION(common::unsupported_method(name));
   }

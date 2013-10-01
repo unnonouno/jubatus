@@ -66,7 +66,7 @@ struct anomaly_serv_config {
   // TODO(oda): we should use optional<jsonconfig::config> instead of
   //            jsonconfig::config ?
   core::common::jsonconfig::config parameter;
-  pfi::text::json::json converter;
+  core::fv_converter::converter_config converter;
 
   template<typename Ar>
   void serialize(Ar& ar) {
@@ -112,8 +112,13 @@ void anomaly_serv::get_status(status_t& status) const {
 
 bool anomaly_serv::set_config(const std::string& config) {
   core::common::jsonconfig::config conf_root(lexical_cast<json>(config));
+  core::common::jsonconfig::config_error_list warnings;
   anomaly_serv_config conf =
-    core::common::jsonconfig::config_cast_check<anomaly_serv_config>(conf_root);
+      core::common::jsonconfig::config_cast_check<anomaly_serv_config>(
+          conf_root, &warnings);
+  for (size_t i = 0; i < warnings.size(); ++i) {
+    LOG(WARNING) << "config warninig: " << warnings[i]->what();
+  }
 
   config_ = config;
 

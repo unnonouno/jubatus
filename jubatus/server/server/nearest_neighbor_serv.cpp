@@ -20,7 +20,6 @@
 #include <glog/logging.h>
 #include <pficommon/concurrent/lock.h>
 #include <pficommon/lang/cast.h>
-#include <pficommon/text/json.h>
 #include "jubatus/core/common/exception.hpp"
 #include "jubatus/core/common/jsonconfig.hpp"
 #include "jubatus/core/fv_converter/converter_config.hpp"
@@ -41,7 +40,7 @@ namespace {
 struct nearest_neighbor_serv_config {
   std::string method;
   pfi::data::optional<pfi::text::json::json> parameter;
-  pfi::text::json::json converter;
+  core::fv_converter::converter_config converter;
 
   template<typename Ar>
   void serialize(Ar& ar) {
@@ -75,9 +74,13 @@ void nearest_neighbor_serv::get_status(status_t& status) const {
 void nearest_neighbor_serv::set_config(const std::string& config) {
   core::common::jsonconfig::config config_root(
       lexical_cast<pfi::text::json::json>(config));
+  core::common::jsonconfig::config_error_list warnings;
   nearest_neighbor_serv_config conf =
-    core::common::jsonconfig::config_cast_check<nearest_neighbor_serv_config>(
-        config_root);
+      core::common::jsonconfig::config_cast_check<nearest_neighbor_serv_config>(
+          config_root, &warnings);
+  for (size_t i = 0; i < warnings.size(); ++i) {
+    LOG(WARNING) << "config warninig: " << warnings[i]->what();
+  }
 
   config_ = config;
 

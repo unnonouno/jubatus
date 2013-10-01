@@ -468,7 +468,7 @@ TEST(jsonconfig_cast, cast_check_error) {
       "{\"web_server\": { \"host\" : 123}, \"users\": [\"abc\", 1] }"));
 
   try {
-    config_cast_check<server_conf>(conf);
+    config_cast_check<server_conf>(conf, 0);
     FAIL();
   } catch (const cast_check_error& e) {
     const config_error_list& errors = e.errors();
@@ -485,7 +485,8 @@ TEST(jsonconfig_cast, cast_check_error) {
 
 TEST(josnconfig_cast, cast_check_warning) {
   config conf(lexical_cast<json>(
-      "{\"web_server\": { \"host\" : \"localhost\", \"port\": 80, \"test\": 1}, \"users\": [\"abc\"]}"));
+      "{\"web_server\": { \"host\" : \"localhost\", \"port\": 80, \"test\": 1},"
+      "\"users\": [\"abc\"]}"));
   config_error_list warnings;
   config_cast_check<server_conf>(conf, &warnings);
 

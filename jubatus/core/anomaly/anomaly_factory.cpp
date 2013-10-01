@@ -19,7 +19,6 @@
 #include <string>
 
 #include <pficommon/lang/shared_ptr.h>
-#include <pficommon/text/json.h>
 
 #include "../common/exception.hpp"
 #include "../common/jsonconfig.hpp"
@@ -52,17 +51,18 @@ shared_ptr<anomaly_base> anomaly_factory::create_anomaly(
     const string& name,
     const config& param,
     const string& id) {
-  anomaly_config conf = config_cast_check<anomaly_config>(param);
+  anomaly_config conf = config_cast_check<anomaly_config>(param, 0);
   if (name == "lof") {
     lof_storage::config config =
-        config_cast_check<lof_storage::config>(param);
+        config_cast_check<lof_storage::config>(param, 0);
     return shared_ptr<anomaly_base>(new lof(
         config,
         recommender::recommender_factory::create_recommender(
             conf.method,
             conf.parameter, id)));
   } else if (name == "light_lof") {
-    light_lof::config lof_config = config_cast_check<light_lof::config>(param);
+    light_lof::config lof_config =
+        config_cast_check<light_lof::config>(param, 0);
     pfi::lang::shared_ptr<table::column_table> nearest_neighbor_table(
         new table::column_table);
     pfi::lang::shared_ptr<nearest_neighbor::nearest_neighbor_base>

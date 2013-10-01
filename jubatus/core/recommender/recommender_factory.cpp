@@ -50,13 +50,13 @@ shared_ptr<recommender_base> recommender_factory::create_recommender(
     return shared_ptr<recommender_base>(new inverted_index);
   } else if (name == "minhash") {
     return shared_ptr<recommender_base>(
-        new minhash(config_cast_check<minhash::config>(param)));
+        new minhash(config_cast_check<minhash::config>(param, 0)));
   } else if (name == "lsh") {
     return shared_ptr<recommender_base>(
-        new lsh(config_cast_check<lsh::config>(param)));
+        new lsh(config_cast_check<lsh::config>(param, 0)));
   } else if (name == "euclid_lsh") {
     return shared_ptr<recommender_base>(
-        new euclid_lsh(config_cast_check<euclid_lsh::config>(param)));
+        new euclid_lsh(config_cast_check<euclid_lsh::config>(param, 0)));
   } else if (pfi::data::string::starts_with(name, NEAREST_NEIGHBOR_PREFIX)) {
     const std::string nearest_neighbor_method =
         name.substr(NEAREST_NEIGHBOR_PREFIX.size());

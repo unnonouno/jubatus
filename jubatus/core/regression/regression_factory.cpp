@@ -36,8 +36,8 @@ shared_ptr<regression_base> regression_factory::create_regression(
     shared_ptr<storage::storage_base> storage) {
   if (name == "PA" || name == "passive_aggressive") {
     return shared_ptr<regression_base>(new regression::passive_aggressive(
-      config_cast_check<regression::passive_aggressive::config>(param),
-      storage));
+        config_cast_check<regression::passive_aggressive::config>(param, 0),
+        storage));
   } else {
     throw JUBATUS_EXCEPTION(common::unsupported_method(name));
   }

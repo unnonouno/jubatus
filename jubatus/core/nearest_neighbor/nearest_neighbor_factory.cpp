@@ -39,13 +39,13 @@ shared_ptr<nearest_neighbor_base> create_nearest_neighbor(
 
   if (name == "euclid_lsh") {
     return shared_ptr<nearest_neighbor_base>(new euclid_lsh(
-        config_cast_check<euclid_lsh::config>(config), table, id));
+        config_cast_check<euclid_lsh::config>(config, 0), table, id));
   } else if (name == "lsh") {
     return shared_ptr<nearest_neighbor_base>(
-        new lsh(config_cast_check<lsh::config>(config), table, id));
+        new lsh(config_cast_check<lsh::config>(config, 0), table, id));
   } else if (name == "minhash") {
     return shared_ptr<nearest_neighbor_base>(
-        new minhash(config_cast_check<minhash::config>(config), table, id));
+        new minhash(config_cast_check<minhash::config>(config, 0), table, id));
   } else {
     throw JUBATUS_EXCEPTION(common::unsupported_method(name));
   }

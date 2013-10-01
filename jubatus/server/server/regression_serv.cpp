@@ -51,8 +51,8 @@ namespace {
 
 struct regression_serv_config {
   std::string method;
-  pfi::data::optional<pfi::text::json::json> parameter;
-  pfi::text::json::json converter;
+  pfi::data::optional<core::common::jsonconfig::config> parameter;
+  core::fv_converter::converter_config converter;
 
   template<typename Ar>
   void serialize(Ar& ar) {
@@ -86,9 +86,13 @@ void regression_serv::get_status(status_t& status) const {
 
 bool regression_serv::set_config(const string& config) {
   core::common::jsonconfig::config config_root(lexical_cast<json>(config));
+  core::common::jsonconfig::config_error_list warnings;
   regression_serv_config conf =
-    core::common::jsonconfig::config_cast_check<regression_serv_config>(
-      config_root);
+      core::common::jsonconfig::config_cast_check<regression_serv_config>(
+          config_root, &warnings);
+  for (size_t i = 0; i < warnings.size(); ++i) {
+    LOG(WARNING) << "config warninig: " << warnings[i]->what();
+  }
 
   config_ = config;
 

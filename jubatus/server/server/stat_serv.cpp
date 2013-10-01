@@ -61,8 +61,13 @@ void stat_serv::get_status(status_t& status) const {
 
 bool stat_serv::set_config(const string& config) {
   core::common::jsonconfig::config conf_root(lexical_cast<json>(config));
+  core::common::jsonconfig::config_error_list warnings;
   stat_serv_config conf =
-      core::common::jsonconfig::config_cast_check<stat_serv_config>(conf_root);
+      core::common::jsonconfig::config_cast_check<stat_serv_config>(
+          conf_root, &warnings);
+  for (size_t i = 0; i < warnings.size(); ++i) {
+    LOG(WARNING) << "config warninig: " << warnings[i]->what();
+  }
 
   config_ = config;
   stat_.reset(

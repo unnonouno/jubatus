@@ -22,7 +22,6 @@
 #include <vector>
 #include <glog/logging.h>
 #include <pficommon/concurrent/lock.h>
-#include <pficommon/text/json.h>
 #include <pficommon/system/time_util.h>
 #include <pficommon/lang/shared_ptr.h>
 
@@ -52,7 +51,6 @@ using std::string;
 using std::vector;
 using std::pair;
 using pfi::lang::lexical_cast;
-using pfi::text::json::json;
 using jubatus::core::graph::preset_query;
 using jubatus::core::graph::node_info;
 using jubatus::server::common::lock_service;
@@ -132,8 +130,13 @@ graph_serv::~graph_serv() {
 bool graph_serv::set_config(const std::string& config) {
   core::common::jsonconfig::config conf_root(
       pfi::lang::lexical_cast<pfi::text::json::json>(config));
+  core::common::jsonconfig::config_error_list warnings;
   graph_serv_config conf =
-    core::common::jsonconfig::config_cast_check<graph_serv_config>(conf_root);
+      core::common::jsonconfig::config_cast_check<graph_serv_config>(
+          conf_root, &warnings);
+  for (size_t i = 0; i < warnings.size(); ++i) {
+    LOG(WARNING) << "config warninig: " << warnings[i]->what();
+  }
 
   config_ = config;
 

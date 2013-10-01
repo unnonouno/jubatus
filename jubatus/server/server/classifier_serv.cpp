@@ -20,7 +20,6 @@
 #include <utility>
 #include <vector>
 
-#include <pficommon/text/json.h>
 #include <pficommon/data/optional.h>
 #include <pficommon/lang/shared_ptr.h>
 
@@ -57,7 +56,7 @@ namespace {
 struct classifier_serv_config {
   std::string method;
   pfi::data::optional<pfi::text::json::json> parameter;
-  pfi::text::json::json converter;
+  core::fv_converter::converter_config converter;
 
   template<typename Ar>
   void serialize(Ar& ar) {
@@ -91,9 +90,13 @@ void classifier_serv::get_status(status_t& status) const {
 
 bool classifier_serv::set_config(const string& config) {
   core::common::jsonconfig::config config_root(lexical_cast<json>(config));
+  core::common::jsonconfig::config_error_list warnings;
   classifier_serv_config conf =
-    core::common::jsonconfig::config_cast_check<classifier_serv_config>(
-      config_root);
+      core::common::jsonconfig::config_cast_check<classifier_serv_config>(
+          config_root, &warnings);
+  for (size_t i = 0; i < warnings.size(); ++i) {
+    LOG(WARNING) << "config warninig: " << warnings[i]->what();
+  }
 
   config_ = config;
 

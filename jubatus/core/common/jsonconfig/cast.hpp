@@ -258,7 +258,10 @@ inline void serialize(
   if (js.get_config().contain(v.name)
       && (js.get_config()[v.name].get().type() != json::Null)) {
     T value;
-    json_from_config(js.get_config()[v.name], value, js.errors(), js.warnings());
+    json_from_config(js.get_config()[v.name],
+                     value,
+                     js.errors(),
+                     js.warnings());
     v.v = value;
   } else {
     // optional can be null
@@ -325,7 +328,7 @@ T config_cast(
 }
 
 template <class T>
-T config_cast_check(const config& c, config_error_list* warnings=0) {
+T config_cast_check(const config& c, config_error_list* warnings) {
   config_error_list errors;
   T value;
   json_config_iarchive_cast cast(c, &errors, warnings);
