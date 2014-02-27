@@ -49,13 +49,25 @@ class compressive_storage : public storage {
   }
 
  private:
-  void carry_up(size_t r);
+  struct coreset {
+    wplist data;
+    int carry_count;
+
+    coreset() : data(), carry_count(0) {
+    }
+
+    MSGPACK_DEFINE(data, carry_count);
+  };
+
+  void carry_up(size_t r, wplist& carry);
   bool is_next_bucket_full(size_t bucket_number);
   bool reach_forgetting_threshold(size_t bucket_number);
   void forget_weight(wplist& points);
   void clear_mine();
 
-  std::vector<wplist> mine_;
+  //std::vector<wplist> mine_;
+  wplist lv0_;
+  std::vector<coreset> coresets_;
   uint64_t status_;
   jubatus::util::lang::shared_ptr<compressor::compressor> compressor_;
 };

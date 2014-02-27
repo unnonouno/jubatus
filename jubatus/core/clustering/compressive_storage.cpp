@@ -30,7 +30,6 @@ compressive_storage::compressive_storage(
     const clustering_config& config)
     : storage(name, config),
       status_(0) {
-  mine_.push_back(wplist());
 }
 
 void compressive_storage::set_compressor(
@@ -39,25 +38,24 @@ void compressive_storage::set_compressor(
 }
 
 void compressive_storage::add(const weighted_point& point) {
-  wplist& c0 = mine_[0];
+  wplist& c0 = lv0_;
   c0.push_back(point);
   if (c0.size() >= static_cast<size_t>(config_.bucket_size)) {
-    wplist cr;
+    wplist carry;
     compressor_->compress(
-        c0, config_.bicriteria_base_size, config_.compressed_bucket_size, cr);
-    c0.swap(cr);
+        c0, config_.bicriteria_base_size, config_.compressed_bucket_size, carry);
+    c0.clear();
     status_ += 1;
-    carry_up(0);
-
+    carry_up(0, carry);
     increment_revision();
   }
 }
 
 wplist compressive_storage::get_mine() const {
-  wplist ret;
-  for (std::vector<wplist>::const_iterator it = mine_.begin();
-      it != mine_.end(); ++it) {
-    concat(*it, ret);
+  wplist ret = lv0_;
+  for (std::vector<coreset>::const_iterator it = coresets_.begin();
+       it != coresets_.end(); ++it) {
+    concat(it->data, ret);
   }
   return ret;
 }
@@ -79,44 +77,44 @@ bool compressive_storage::reach_forgetting_threshold(size_t bucket_number) {
   return false;
 }
 
-bool compressive_storage::is_next_bucket_full(size_t bucket_number) {
-  return digit(status_ - 1, bucket_number, config_.bucket_length) ==
-      config_.bucket_length - 1;
-}
+void compressive_storage::carry_up(size_t r, wplist& carry) {
+  // insert `carry` to the r-th coreset.
+  // if the r-th coreset is full, compress the set and the carry and insert it to the next.
 
-void compressive_storage::carry_up(size_t r) {
-  if (r >= mine_.size() - 1) {
-    mine_.push_back(wplist());
+  if (r >= coresets_.size()) {
+    coresets_.push_back(coreset());
   }
-  forget_weight(mine_[r]);
-  if (!is_next_bucket_full(r)) {
-    if (!reach_forgetting_threshold(r + 1) ||
-        mine_[r].size() == get_mine().size()) {
-      concat(mine_[r], mine_[r + 1]);
-      mine_[r].clear();
+  forget_weight(carry);
+  coresets_[r].carry_count += 1;
+  if (coresets_[r].carry_count < config_.bucket_length) {
+    if (!reach_forgetting_threshold(r)) {
+      concat(carry, coresets_[r].data);
     } else {
-      mine_[r + 1].swap(mine_[r]);
-      mine_[r].clear();
+      coresets_[r].data.swap(carry);
     }
   } else {
-    wplist cr = mine_[r];
-    wplist crr = mine_[r + 1];
-    mine_[r].clear();
-    mine_[r + 1].clear();
-    concat(cr, crr);
+    // As the r-th bucket is full, it needs to carry up.
+    wplist current;
+    coresets_[r].data.swap(current);
+    concat(carry, current);
+    coresets_[r].carry_count = 0;
     size_t dstsize = (r == 0) ? config_.compressed_bucket_size :
         2 * r * r * config_.compressed_bucket_size;
-    compressor_->compress(crr, config_.bicriteria_base_size,
-                          dstsize, mine_[r + 1]);
-    carry_up(r + 1);
+    wplist next_carry;
+    compressor_->compress(current,
+                          config_.bicriteria_base_size,
+                          dstsize,
+                          next_carry);
+    carry_up(r + 1, next_carry);
   }
 }
 
 void compressive_storage::pack(
     msgpack::packer<msgpack::sbuffer>& packer) const {
-  packer.pack_array(4);
+  packer.pack_array(5);
   packer.pack(static_cast<const storage&>(*this));
-  packer.pack(mine_);
+  packer.pack(lv0_);
+  packer.pack(coresets_);
   packer.pack(status_);
   packer.pack(*compressor_);
 }
@@ -124,18 +122,19 @@ void compressive_storage::pack(
 void compressive_storage::unpack(msgpack::object o) {
   std::vector<msgpack::object> mems;
   o.convert(&mems);
-  if (mems.size() != 4) {
+  if (mems.size() != 5) {
     throw msgpack::type_error();
   }
   mems[0].convert(static_cast<storage*>(this));
-  mems[1].convert(&mine_);
-  mems[2].convert(&status_);
-  mems[3].convert(compressor_.get());
+  mems[1].convert(&lv0_);
+  mems[2].convert(&coresets_);
+  mems[3].convert(&status_);
+  mems[4].convert(compressor_.get());
 }
 
 void compressive_storage::clear_mine() {
-  mine_.clear();
-  mine_.push_back(wplist());
+  lv0_.clear();
+  coresets_.clear();
   status_ = 0;
 }
 
