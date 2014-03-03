@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2014 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -14,29 +14,29 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-#ifndef JUBATUS_CORE_FV_CONVERTER_SPLITTER_FACTORY_HPP_
-#define JUBATUS_CORE_FV_CONVERTER_SPLITTER_FACTORY_HPP_
+#include "dynamic_string_feature.hpp"
 
-#include <string>
 #include <map>
-#include "jubatus/util/lang/shared_ptr.h"
+#include <string>
 
 namespace jubatus {
 namespace core {
 namespace fv_converter {
 
-class word_splitter;
+dynamic_string_feature::dynamic_string_feature(
+    const std::string& path,
+    const std::string& function,
+    const std::map<std::string, std::string>& params)
+    : loader_(path),
+      impl_(load_object<string_feature>(loader_, function, params)) {
+}
 
-class splitter_factory {
- public:
-  typedef std::map<std::string, std::string> param_t;
-
-  jubatus::util::lang::shared_ptr<word_splitter> create(
-      const std::string& name, const param_t& params) const;
-};
+void dynamic_string_feature::extract(
+    const std::string& text,
+    std::vector<string_feature_element>& result) const {
+  impl_->extract(text, result);
+}
 
 }  // namespace fv_converter
 }  // namespace core
 }  // namespace jubatus
-
-#endif  // JUBATUS_CORE_FV_CONVERTER_SPLITTER_FACTORY_HPP_

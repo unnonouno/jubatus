@@ -20,21 +20,21 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include "exception.hpp"
-#include "splitter_factory.hpp"
-#include "word_splitter.hpp"
+#include "string_feature.hpp"
+#include "string_feature_factory.hpp"
 
 namespace jubatus {
 namespace core {
 namespace fv_converter {
 
-TEST(splitter_factory, trivial) {
-  splitter_factory f;
+TEST(string_feature_factory, trivial) {
+  string_feature_factory f;
   std::map<std::string, std::string> param;
   ASSERT_THROW(f.create("hoge", param), converter_exception);
 }
 
-TEST(splitter_factory, dynamic) {
-  splitter_factory f;
+TEST(string_feature_factory, dynamic) {
+  string_feature_factory f;
   std::map<std::string, std::string> param;
   ASSERT_THROW(f.create("dynamic", param), converter_exception);
 
@@ -45,20 +45,24 @@ TEST(splitter_factory, dynamic) {
   ASSERT_THROW(f.create("dynamic", param), converter_exception);
 
   param["function"] = "create";
-  jubatus::util::lang::shared_ptr<word_splitter> s(f.create("dynamic", param));
+  jubatus::util::lang::shared_ptr<string_feature> s(f.create("dynamic", param));
 
   std::string d("hoge fuga");
-  std::vector<std::pair<size_t, size_t> > bs;
-  s->split(d, bs);
-  ASSERT_EQ(2u, bs.size());
-  ASSERT_EQ(0u, bs[0].first);
-  ASSERT_EQ(4u, bs[0].second);
-  ASSERT_EQ(5u, bs[1].first);
-  ASSERT_EQ(4u, bs[1].second);
+  std::vector<string_feature_element> es;
+  s->extract(d, es);
+  ASSERT_EQ(2u, es.size());
+  ASSERT_EQ(0u, es[0].begin);
+  ASSERT_EQ(4u, es[0].length);
+  ASSERT_EQ("hoge", es[0].value);
+  ASSERT_EQ(1.0, es[0].score);
+  ASSERT_EQ(5u, es[1].begin);
+  ASSERT_EQ(4u, es[1].length);
+  ASSERT_EQ("fuga", es[1].value);
+  ASSERT_EQ(1.0, es[1].score);
 }
 
-TEST(splitter_factory, ngram) {
-  splitter_factory f;
+TEST(string_feature_factory, ngram) {
+  string_feature_factory f;
   std::map<std::string, std::string> param;
   ASSERT_THROW(f.create("ngram", param), converter_exception);
 
@@ -69,11 +73,11 @@ TEST(splitter_factory, ngram) {
   ASSERT_THROW(f.create("ngram", param), converter_exception);
 
   param["char_num"] = "2";
-  jubatus::util::lang::shared_ptr<word_splitter> s(f.create("ngram", param));
+  jubatus::util::lang::shared_ptr<string_feature> s(f.create("ngram", param));
 }
 
-TEST(splitter_factory, regexp) {
-  splitter_factory f;
+TEST(string_feature_factory, regexp) {
+  string_feature_factory f;
   std::map<std::string, std::string> param;
   ASSERT_THROW(f.create("regexp", param), converter_exception);
 
@@ -87,11 +91,11 @@ TEST(splitter_factory, regexp) {
 
   param["pattern"] = "(.+)";
   param["group"] = "1";
-  jubatus::util::lang::shared_ptr<word_splitter>(f.create("regexp", param));
+  jubatus::util::lang::shared_ptr<string_feature>(f.create("regexp", param));
 
   param["pattern"] = "(.+)";
   param.erase("group");
-  jubatus::util::lang::shared_ptr<word_splitter>(f.create("regexp", param));
+  jubatus::util::lang::shared_ptr<string_feature>(f.create("regexp", param));
 }
 
 }  // namespace fv_converter

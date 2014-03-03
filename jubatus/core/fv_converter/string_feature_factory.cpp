@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2014 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -14,16 +14,15 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-#include "splitter_factory.hpp"
+#include "string_feature_factory.hpp"
 
 #include <map>
 #include <string>
 #include "character_ngram.hpp"
 #include "regexp_splitter.hpp"
-#include "dynamic_splitter.hpp"
+#include "dynamic_string_feature.hpp"
 #include "exception.hpp"
 #include "util.hpp"
-#include "word_splitter.hpp"
 
 using jubatus::util::lang::shared_ptr;
 
@@ -34,7 +33,7 @@ namespace fv_converter {
 namespace {
 
 shared_ptr<character_ngram> create_character_ngram(
-    const splitter_factory::param_t& params) {
+    const string_feature_factory::param_t& params) {
   int n = get_int_or_die(params, "char_num");
   if (n <= 0) {
     throw JUBATUS_EXCEPTION(
@@ -44,12 +43,12 @@ shared_ptr<character_ngram> create_character_ngram(
   return shared_ptr<character_ngram>(new character_ngram(m));
 }
 
-shared_ptr<word_splitter> create_dynamic_splitter(
-    const splitter_factory::param_t& params) {
+shared_ptr<string_feature> create_dynamic_splitter(
+    const string_feature_factory::param_t& params) {
   const std::string& path = get_or_die(params, "path");
   const std::string& function = get_or_die(params, "function");
-  return shared_ptr<word_splitter>(
-      new dynamic_splitter(path, function, params));
+  return shared_ptr<string_feature>(
+      new dynamic_string_feature(path, function, params));
 }
 
 const std::string& get(
@@ -88,7 +87,7 @@ shared_ptr<regexp_splitter >create_regexp(
 
 }  // namespace
 
-shared_ptr<word_splitter> splitter_factory::create(
+shared_ptr<string_feature> string_feature_factory::create(
     const std::string& name,
     const param_t& params) const {
   if (name == "ngram") {

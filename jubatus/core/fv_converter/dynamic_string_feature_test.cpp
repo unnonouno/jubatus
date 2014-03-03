@@ -19,7 +19,7 @@
 #include <utility>
 #include <vector>
 #include <gtest/gtest.h>
-#include "dynamic_splitter.hpp"
+#include "dynamic_string_feature.hpp"
 #include "exception.hpp"
 #include "word_splitter.hpp"
 
@@ -27,31 +27,35 @@ namespace jubatus {
 namespace core {
 namespace fv_converter {
 
-TEST(dynamic_splitter, trivial) {
-  dynamic_splitter s(LIBSPLITTER_SAMPLE,
+TEST(dynamic_string_feature, trivial) {
+  dynamic_string_feature s(LIBSPLITTER_SAMPLE,
       "create",
       std::map<std::string, std::string>());
-  std::vector<std::pair<size_t, size_t> > bounds;
-  s.split(" test test", bounds);
+  std::vector<string_feature_element> elements;
+  s.extract(" test test", elements);
 
-  ASSERT_EQ(2u, bounds.size());
-  EXPECT_EQ(1u, bounds[0].first);
-  EXPECT_EQ(4u, bounds[0].second);
-  EXPECT_EQ(6u, bounds[1].first);
-  EXPECT_EQ(4u, bounds[1].second);
+  ASSERT_EQ(2u, elements.size());
+  EXPECT_EQ(1u, elements[0].begin);
+  EXPECT_EQ(4u, elements[0].length);
+  EXPECT_EQ("test", elements[0].value);
+  EXPECT_EQ(1.0, elements[0].score);
+  EXPECT_EQ(6u, elements[1].begin);
+  EXPECT_EQ(4u, elements[1].length);
+  EXPECT_EQ("test", elements[1].value);
+  EXPECT_EQ(1.0, elements[1].score);
 }
 
-TEST(dynamic_splitter, unknown_file) {
+TEST(dynamic_string_feature, unknown_file) {
   EXPECT_THROW(
-      dynamic_splitter s("unknown_file.so",
+      dynamic_string_feature s("unknown_file.so",
           "create",
           std::map<std::string, std::string>()),
       converter_exception);
 }
 
-TEST(dynamic_splitter, unknown_function) {
+TEST(dynamic_string_feature, unknown_function) {
   EXPECT_THROW(
-      dynamic_splitter s(LIBSPLITTER_SAMPLE,
+      dynamic_string_feature s(LIBSPLITTER_SAMPLE,
           "unknown_function",
           std::map<std::string, std::string>()),
       converter_exception);

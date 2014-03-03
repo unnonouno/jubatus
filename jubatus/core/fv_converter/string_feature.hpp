@@ -1,5 +1,5 @@
 // Jubatus: Online machine learning framework for distributed environment
-// Copyright (C) 2011 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
+// Copyright (C) 2013 Preferred Infrastructure and Nippon Telegraph and Telephone Corporation.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -14,39 +14,44 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-#ifndef JUBATUS_CORE_FV_CONVERTER_DYNAMIC_SPLITTER_HPP_
-#define JUBATUS_CORE_FV_CONVERTER_DYNAMIC_SPLITTER_HPP_
+#ifndef JUBATUS_CORE_FV_CONVERTER_STRING_FEATURE_HPP_
+#define JUBATUS_CORE_FV_CONVERTER_STRING_FEATURE_HPP_
 
-#include <map>
 #include <string>
-#include <utility>
 #include <vector>
-#include "jubatus/util/lang/scoped_ptr.h"
-#include "dynamic_loader.hpp"
-#include "word_splitter.hpp"
 
 namespace jubatus {
 namespace core {
 namespace fv_converter {
 
-class dynamic_splitter : public word_splitter {
+struct string_feature_element {
+  size_t begin;
+  size_t length;
+  std::string value;
+  double score;
+
+  string_feature_element(
+      size_t begin,
+      size_t length,
+      const std::string& value,
+      double score)
+      : begin(begin), length(length), value(value), score(score) {
+  }
+};
+
+class string_feature {
  public:
-  dynamic_splitter(
-      const std::string& path,
-      const std::string& function,
-      const std::map<std::string, std::string>& params);
+  virtual ~string_feature() {
+  }
 
-  void split(
-      const std::string& string,
-      std::vector<std::pair<size_t, size_t> >& ret_boundaries) const;
-
- private:
-  dynamic_loader loader_;
-  jubatus::util::lang::scoped_ptr<word_splitter> impl_;
+  virtual void extract(
+      const std::string& text,
+      std::vector<string_feature_element>& result) const = 0;
 };
 
 }  // namespace fv_converter
 }  // namespace core
 }  // namespace jubatus
 
-#endif  // JUBATUS_CORE_FV_CONVERTER_DYNAMIC_SPLITTER_HPP_
+
+#endif  // JUBATUS_CORE_FV_CONVERTER_STRING_FEATURE_HPP_

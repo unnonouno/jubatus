@@ -31,17 +31,17 @@ namespace fv_converter {
 template<class T>
 class counter {
  public:
-  typedef jubatus::util::data::unordered_map<T, unsigned> map_t;
-  typedef typename jubatus::util::data::unordered_map<T, unsigned>
+  typedef jubatus::util::data::unordered_map<T, double> map_t;
+  typedef typename jubatus::util::data::unordered_map<T, double>
       ::const_iterator const_iterator;
-  typedef typename jubatus::util::data::unordered_map<T, unsigned>
+  typedef typename jubatus::util::data::unordered_map<T, double>
       ::iterator iterator;
 
   bool contains(const T& key) const {
     return data_.count(key) != 0;
   }
 
-  unsigned operator[](const T& key) const {
+  double operator[](const T& key) const {
     const_iterator it = data_.find(key);
     if (it == data_.end()) {
       return 0;
@@ -50,7 +50,7 @@ class counter {
     }
   }
 
-  unsigned& operator[](const T& key) {
+  double& operator[](const T& key) {
     if (data_.count(key) == 0) {
       data_[key] = 0;
     }
@@ -74,7 +74,7 @@ class counter {
   }
 
   void clear() {
-    jubatus::util::data::unordered_map<T, unsigned>().swap(data_);
+    jubatus::util::data::unordered_map<T, double>().swap(data_);
   }
 
   void add(const counter<T>& counts) {
@@ -93,7 +93,7 @@ class counter {
   friend std::ostream& operator<<(std::ostream& os, const counter<T>& c) {
     os << "{";
     for (typename
-             jubatus::util::data::unordered_map<T, unsigned>::const_iterator it
+             jubatus::util::data::unordered_map<T, double>::const_iterator it
                  = c.data_.begin();
          it != c.data_.end();
          ++it) {
@@ -104,7 +104,7 @@ class counter {
   }
 
  private:
-  jubatus::util::data::unordered_map<T, unsigned> data_;
+  jubatus::util::data::unordered_map<T, double> data_;
 };
 
 }  // namespace fv_converter
