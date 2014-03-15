@@ -1,4 +1,4 @@
-// This file is auto-generated from classifier.idl(0.4.5-347-g86989a6) with jenerator version 0.4.5-472-g0c36f76/develop
+// This file is auto-generated from classifier.idl(0.4.5-347-g86989a6) with jenerator version 0.5.2-17-g1d8e24c/user-error
 // *** DO NOT EDIT ***
 
 #include <map>
@@ -20,63 +20,80 @@ class classifier_impl : public jubatus::server::common::mprpc::rpc_server {
     p_(new jubatus::server::framework::server_helper<classifier_serv>(a,
         false)) {
 
-    rpc_server::add<int32_t(std::string, std::vector<labeled_datum>)>("train",
-        jubatus::util::lang::bind(&classifier_impl::train, this,
-        jubatus::util::lang::_2));
-    rpc_server::add<std::vector<std::vector<estimate_result> >(std::string,
-        std::vector<jubatus::core::fv_converter::datum>)>("classify",
-        jubatus::util::lang::bind(&classifier_impl::classify, this,
-        jubatus::util::lang::_2));
-    rpc_server::add<bool(std::string)>("clear", jubatus::util::lang::bind(
-        &classifier_impl::clear, this));
+    rpc_server::add("train", jubatus::util::lang::bind(&classifier_impl::train,
+        this, jubatus::util::lang::_1));
+    rpc_server::add("classify", jubatus::util::lang::bind(
+        &classifier_impl::classify, this, jubatus::util::lang::_1));
+    rpc_server::add("clear", jubatus::util::lang::bind(&classifier_impl::clear,
+        this, jubatus::util::lang::_1));
 
-    rpc_server::add<std::string(std::string)>("get_config",
-        jubatus::util::lang::bind(&classifier_impl::get_config, this));
-    rpc_server::add<bool(std::string, std::string)>("save",
-        jubatus::util::lang::bind(&classifier_impl::save, this,
-        jubatus::util::lang::_2));
-    rpc_server::add<bool(std::string, std::string)>("load",
-        jubatus::util::lang::bind(&classifier_impl::load, this,
-        jubatus::util::lang::_2));
-    rpc_server::add<std::map<std::string, std::map<std::string, std::string> >(
-        std::string)>("get_status", jubatus::util::lang::bind(
-        &classifier_impl::get_status, this));
+    rpc_server::add("get_config", jubatus::util::lang::bind(
+        &classifier_impl::get_config, this, jubatus::util::lang::_1));
+    rpc_server::add("save", jubatus::util::lang::bind(&classifier_impl::save,
+        this, jubatus::util::lang::_1));
+    rpc_server::add("load", jubatus::util::lang::bind(&classifier_impl::load,
+        this, jubatus::util::lang::_1));
+    rpc_server::add("get_status", jubatus::util::lang::bind(
+        &classifier_impl::get_status, this, jubatus::util::lang::_1));
   }
 
-  int32_t train(const std::vector<labeled_datum>& data) {
+  void train(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string, std::vector<labeled_datum> > params;
+    req.params().convert(&params);
     JWLOCK_(p_);
-    return get_p()->train(data);
+    int32_t retval = get_p()->train(params.get<1>());
+    req.result(retval);
   }
 
-  std::vector<std::vector<estimate_result> > classify(
-      const std::vector<jubatus::core::fv_converter::datum>& data) {
+  void classify(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string,
+        std::vector<jubatus::core::fv_converter::datum> > params;
+    req.params().convert(&params);
     JRLOCK_(p_);
-    return get_p()->classify(data);
+    std::vector<std::vector<estimate_result> > retval = get_p()->classify(
+        params.get<1>());
+    req.result(retval);
   }
 
-  bool clear() {
+  void clear(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string> params;
+    req.params().convert(&params);
     JWLOCK_(p_);
-    return get_p()->clear();
+    bool retval = get_p()->clear();
+    req.result(retval);
   }
 
-  std::string get_config() {
+  void get_config(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string> params;
+    req.params().convert(&params);
     JRLOCK_(p_);
-    return get_p()->get_config();
+    std::string retval = get_p()->get_config();
+    req.result(retval);
   }
 
-  bool save(const std::string& id) {
+  void save(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string, std::string> params;
+    req.params().convert(&params);
     JRLOCK_(p_);
-    return get_p()->save(id);
+    bool retval = get_p()->save(params.get<1>());
+    req.result(retval);
   }
 
-  bool load(const std::string& id) {
+  void load(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string, std::string> params;
+    req.params().convert(&params);
     JWLOCK_(p_);
-    return get_p()->load(id);
+    bool retval = get_p()->load(params.get<1>());
+    req.result(retval);
   }
 
-  std::map<std::string, std::map<std::string, std::string> > get_status() {
+  void get_status(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string> params;
+    req.params().convert(&params);
     JRLOCK_(p_);
-    return p_->get_status();
+    std::map<std::string, std::map<std::string,
+        std::string> > retval = p_->get_status();
+    req.result(retval);
   }
 
   int run() { return p_->start(*this); }
