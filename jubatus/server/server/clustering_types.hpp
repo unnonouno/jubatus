@@ -1,4 +1,4 @@
-// This file is auto-generated from clustering.idl(0.4.5-350-g9c67807) with jenerator version 0.5.2-17-g1d8e24c/user-error
+// This file is auto-generated from clustering.idl(0.4.5-350-g9c67807) with jenerator version 0.5.2-19-gd01989b/user-error
 // *** DO NOT EDIT ***
 
 #ifndef JUBATUS_SERVER_SERVER_CLUSTERING_TYPES_HPP_

@@ -1,4 +1,4 @@
-// This file is auto-generated from classifier.idl(0.4.5-347-g86989a6) with jenerator version 0.5.2-17-g1d8e24c/user-error
+// This file is auto-generated from classifier.idl(0.4.5-347-g86989a6) with jenerator version 0.5.2-19-gd01989b/user-error
 // *** DO NOT EDIT ***
 
 #include <map>
@@ -24,6 +24,10 @@ class classifier_impl : public jubatus::server::common::mprpc::rpc_server {
         this, jubatus::util::lang::_1));
     rpc_server::add("classify", jubatus::util::lang::bind(
         &classifier_impl::classify, this, jubatus::util::lang::_1));
+    rpc_server::add("get_labels", jubatus::util::lang::bind(
+        &classifier_impl::get_labels, this, jubatus::util::lang::_1));
+    rpc_server::add("set_label", jubatus::util::lang::bind(
+        &classifier_impl::set_label, this, jubatus::util::lang::_1));
     rpc_server::add("clear", jubatus::util::lang::bind(&classifier_impl::clear,
         this, jubatus::util::lang::_1));
 
@@ -52,6 +56,22 @@ class classifier_impl : public jubatus::server::common::mprpc::rpc_server {
     JRLOCK_(p_);
     std::vector<std::vector<estimate_result> > retval = get_p()->classify(
         params.get<1>());
+    req.result(retval);
+  }
+
+  void get_labels(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string> params;
+    req.params().convert(&params);
+    JRLOCK_(p_);
+    std::vector<std::string> retval = get_p()->get_labels();
+    req.result(retval);
+  }
+
+  void set_label(msgpack::rpc::request& req) {
+    msgpack::type::tuple<std::string, std::string> params;
+    req.params().convert(&params);
+    JWLOCK_(p_);
+    bool retval = get_p()->set_label(params.get<1>());
     req.result(retval);
   }
 

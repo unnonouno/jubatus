@@ -1,4 +1,4 @@
-// This file is auto-generated from recommender.idl(0.4.5-347-g86989a6) with jenerator version 0.5.2-17-g1d8e24c/user-error
+// This file is auto-generated from recommender.idl(0.4.5-347-g86989a6) with jenerator version 0.5.2-19-gd01989b/user-error
 // *** DO NOT EDIT ***
 
 #include <map>
@@ -48,10 +48,7 @@ int run_proxy(int argc, char* argv[]) {
         jubatus::core::fv_converter::datum,
         jubatus::core::fv_converter::datum)>(
         &jubatus::server::framework::pass<jubatus::core::fv_converter::datum>));
-    k.register_async_broadcast<std::vector<std::string> >("get_all_rows",
-        jubatus::util::lang::function<std::vector<std::string>(
-        std::vector<std::string>, std::vector<std::string>)>(
-        &jubatus::server::framework::concat<std::string>));
+    k.register_async_random<std::vector<std::string> >("get_all_rows");
     k.register_async_random<float, jubatus::core::fv_converter::datum,
         jubatus::core::fv_converter::datum>("calc_similarity");
     k.register_async_random<float, jubatus::core::fv_converter::datum>(
