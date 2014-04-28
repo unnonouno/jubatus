@@ -4,7 +4,7 @@ from waflib.Errors import TaskNotReady
 import os
 import sys
 
-VERSION = '0.5.2'
+VERSION = '0.5.4'
 APPNAME = 'jubatus'
 
 top = '.'

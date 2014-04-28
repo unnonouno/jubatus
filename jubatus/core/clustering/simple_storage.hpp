@@ -24,8 +24,6 @@ namespace jubatus {
 namespace core {
 namespace clustering {
 
-class storage_serializer;
-
 class simple_storage : public storage {
  public:
   simple_storage(const std::string& name, const clustering_config& config);
@@ -45,12 +43,9 @@ class simple_storage : public storage {
   }
 
  private:
+  void clear_mine();
+
   wplist mine_;
-  friend class storage_serializer;
-  template <class Ar>
-  void serialize(Ar& ar) {
-    ar & mine_;
-  }
 };
 
 }  // namespace clustering

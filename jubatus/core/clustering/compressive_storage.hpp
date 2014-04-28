@@ -27,8 +27,6 @@ namespace jubatus {
 namespace core {
 namespace clustering {
 
-class storage_serializer;
-
 class compressive_storage : public storage {
  public:
   compressive_storage(
@@ -55,16 +53,11 @@ class compressive_storage : public storage {
   bool is_next_bucket_full(size_t bucket_number);
   bool reach_forgetting_threshold(size_t bucket_number);
   void forget_weight(wplist& points);
+  void clear_mine();
 
   std::vector<wplist> mine_;
   uint64_t status_;
   jubatus::util::lang::shared_ptr<compressor::compressor> compressor_;
-
-  friend class storage_serializer;
-  template <class Ar>
-  void serialize(Ar &ar) {
-    ar & status_ & mine_;
-  }
 };
 
 }  // namespace clustering

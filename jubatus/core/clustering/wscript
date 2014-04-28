@@ -22,7 +22,6 @@ def build(bld):
     'clustering.hpp',
     'clustering_method_factory.hpp',
     'clustering_method.hpp',
-    'clustering_method_serializer.hpp',
     'compressive_storage.hpp',
     'compressor.hpp',
     'discrete_distribution.hpp',
@@ -37,7 +36,6 @@ def build(bld):
     'simple_storage.hpp',
     'storage_factory.hpp',
     'storage.hpp',
-    'storage_serializer.hpp',
     'types.hpp',
     'util.hpp',
   ]
@@ -57,6 +55,7 @@ def build(bld):
     )
 
   test_cases = [
+    'compressive_storage_test.cpp',
     'mixable_model_test.cpp',
     'model_test.cpp',
     'storage_test.cpp'

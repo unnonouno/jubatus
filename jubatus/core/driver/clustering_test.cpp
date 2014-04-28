@@ -23,6 +23,7 @@
 #include "clustering.hpp"
 
 #include "../../util/lang/shared_ptr.h"
+#include "../../util/math/random.h"
 #include "../clustering/clustering_config.hpp"
 #include "../clustering/clustering.hpp"
 #include "../clustering/kmeans_clustering_method.hpp"
@@ -39,6 +40,7 @@ using jubatus::util::lang::shared_ptr;
 using jubatus::core::fv_converter::datum;
 using jubatus::core::clustering::clustering_method;
 using jubatus::core::clustering::clustering_config;
+using jubatus::core::framework::mixable_holder;
 
 namespace jubatus {
 namespace core {
@@ -47,17 +49,23 @@ namespace driver {
 class clustering_test
     : public ::testing::TestWithParam<pair<string, string> > {
  protected:
-  void SetUp() {
+  shared_ptr<driver::clustering> create_driver() const {
     pair<string, string> param = GetParam();
     clustering_config conf;
     conf.compressor_method = param.first;
-    clustering_.reset(
+    return shared_ptr<driver::clustering>(
         new driver::clustering(
             shared_ptr<core::clustering::clustering>(
                 new core::clustering::clustering("dummy",
                                                  param.second,
                                                  conf)),
             make_fv_converter()));
+  }
+  void SetUp() {
+    pair<string, string> param = GetParam();
+    clustering_config conf;
+    conf.compressor_method = param.first;
+    clustering_ = create_driver();
   }
   void TearDown() {
     clustering_.reset();
@@ -117,7 +125,7 @@ TEST_P(clustering_test, save_load) {
 }
 
 TEST_P(clustering_test, get_k_center) {
-  jubatus::util::math::random::mtrand r;
+  jubatus::util::math::random::mtrand r(0);
   vector<datum> one;
   vector<datum> two;
 
@@ -154,6 +162,12 @@ TEST_P(clustering_test, get_k_center) {
       }
     }
   }
+
+  clustering_->clear();
+  {
+    vector<datum> result = clustering_->get_k_center();
+    ASSERT_EQ(0u, result.size());
+  }
 }
 struct check_points {
   float a;
@@ -181,7 +195,7 @@ struct check_point_compare {
 
 
 TEST_P(clustering_test, get_nearest_members) {
-  jubatus::util::math::random::mtrand r;
+  jubatus::util::math::random::mtrand r(0);
   vector<datum> one;
   vector<datum> two;
 
@@ -236,7 +250,7 @@ TEST_P(clustering_test, get_nearest_members) {
 
 
 TEST_P(clustering_test, get_nearest_center) {
-  jubatus::util::math::random::mtrand r;
+  jubatus::util::math::random::mtrand r(0);
   vector<datum> one;
   vector<datum> two;
 
@@ -278,6 +292,28 @@ TEST_P(clustering_test, get_nearest_center) {
           ASSERT_GT(400 * 2, diff);
         }
       }
+    }
+  }
+}
+
+TEST_P(clustering_test, empty_mix) {
+  shared_ptr<driver::clustering> other = create_driver();
+  shared_ptr<mixable_holder> holder1 = clustering_->get_mixable_holder();
+  shared_ptr<mixable_holder> holder2 = other->get_mixable_holder();
+
+  std::vector<common::byte_buffer> data;
+  {
+    mixable_holder::mixable_list mixables1 = holder1->get_mixables();
+    for (size_t i = 0; i < mixables1.size(); ++i) {
+      data.push_back(mixables1[i]->get_diff());
+    }
+  }
+  {
+    mixable_holder::mixable_list mixables2 = holder2->get_mixables();
+    ASSERT_EQ(data.size(), mixables2.size());
+    for (size_t i = 0; i < data.size(); ++i) {
+      mixables2[i]->mix(mixables2[i]->get_diff(), data[i], data[i]);
+      mixables2[i]->put_diff(data[i]);
     }
   }
 }

@@ -92,6 +92,14 @@ class mixable_holder {
     return ret;
   }
 
+  void clear_each_mixables() {
+    // not mixables_->clear();
+    // that's why the name of this method is not clear()
+    for (size_t i = 0; i < mixables_.size(); ++i) {
+      mixables_[i]->clear();
+    }
+  }
+
   void pack(msgpack::packer<msgpack::sbuffer>& packer) const {
     packer.pack_array(mixables_.size());
     for (size_t i = 0; i < mixables_.size(); ++i) {
@@ -104,6 +112,8 @@ class mixable_holder {
         o.via.array.size != mixables_.size()) {
       throw msgpack::type_error();
     }
+
+    clear_each_mixables();
 
     msgpack::object* p = o.via.array.ptr;
     for (size_t i = 0; i < mixables_.size(); ++i) {
@@ -277,6 +287,7 @@ class delegating_mixable : public mixable<Model, Diff, PullArg> {
   }
 
   void clear() {
+    this->get_model()->clear();
   }
 };
 
