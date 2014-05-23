@@ -40,16 +40,13 @@ namespace recommender {
 namespace {
 
 const std::string NEAREST_NEIGHBOR_PREFIX("nearest_neighbor_recommender:");
-struct nearest_neighbor_recommender_config {
-  std::string method;
-  config parameter;
+struct unlearner_config {
   jubatus::util::data::optional<std::string> unlearner;
   jubatus::util::data::optional<config> unlearner_parameter;
 
   template<typename Ar>
   void serialize(Ar& ar) {
-    ar & JUBA_MEMBER(method) & JUBA_MEMBER(parameter) &
-        JUBA_MEMBER(unlearner) & JUBA_MEMBER(unlearner_parameter);
+    ar & JUBA_MEMBER(unlearner) & JUBA_MEMBER(unlearner_parameter);
   }
 };
 }  // namespace
@@ -70,19 +67,33 @@ shared_ptr<recommender_base> recommender_factory::create_recommender(
   } else if (name == "euclid_lsh") {
     return shared_ptr<recommender_base>(
         new euclid_lsh(config_cast_check<euclid_lsh::config>(param)));
-  } else if (name == "nearest_neighbor_recommender") {
-    nearest_neighbor_recommender_config conf =
-        config_cast_check<nearest_neighbor_recommender_config>(param);
+  } else if (starts_with(name, NEAREST_NEIGHBOR_PREFIX)) {
+    const std::string nearest_neighbor_method =
+        name.substr(NEAREST_NEIGHBOR_PREFIX.size());
+    // make a copy of parameter and remove configuration for unleaner
+    util::text::json::json js = param.get().clone();
+    // note that when js doesn't contain the keys, erase method ignores them.
+    js.erase("unlearner");
+    js.erase("unlearner_parameter");
+    common::jsonconfig::config copy(js, param.path());
+
     shared_ptr<table::column_table> table(new table::column_table);
     shared_ptr<nearest_neighbor::nearest_neighbor_base>
         nearest_neighbor_engine(nearest_neighbor::create_nearest_neighbor(
-            conf.method, conf.parameter, table, id));
-    if (conf.unlearner) {
-      if (!conf.unlearner_parameter) {
+            nearest_neighbor_method, copy, table, id));
+
+    if (param.get().count("unlearner")) {
+      if (!param.get().count("unlearner_parameter")) {
         throw JUBATUS_EXCEPTION(
             common::config_exception() << common::exception::error_message(
                 "unlearner is set but unlearner_parameter is not found"));
       }
+      util::text::json::json unlearn_conf(new util::text::json::json_object);
+      unlearn_conf["unlearner"] = param.get()["unlearner"];
+      unlearn_conf["unlearner_parameter"] = param.get()["unlearner_parameter"];
+      common::jsonconfig::config unlearn_param(unlearn_conf, param.path());
+      unlearner_config conf = config_cast_check<unlearner_config>(unlearn_param);
+
       shared_ptr<unlearner::unlearner_base> unl(unlearner::create_unlearner(
           *conf.unlearner, common::jsonconfig::config(
               *conf.unlearner_parameter)));

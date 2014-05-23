@@ -105,6 +105,7 @@ public:
   const json& operator[](const std::string& name) const;
   const json& operator[](size_t ix) const;
 
+  size_t erase(const std::string& name);
   size_t count(const std::string& name) const;
 
   void add(const std::string& name, const json& v);
@@ -435,6 +436,10 @@ public:
     return p->second;
   }
 
+  size_t erase(const std::string& name) {
+    return member.erase(name);
+  }
+
   size_t count(const std::string& name) const {
     return member.count(name);
   }
@@ -577,6 +582,14 @@ inline const json& json::operator[](size_t ix) const
 inline json &json::operator[](size_t ix)
 {
   return const_cast<json&>(const_cast<json const&>(*this)[ix]);
+}
+
+inline size_t json::erase(const std::string& name)
+{
+  if (json_object* p = dynamic_cast<json_object*>(val.get()))
+    return (*p).erase(name);
+  else
+    throw json_bad_cast<json>("failed to use json as object.");
 }
 
 inline size_t json::count(const std::string& name) const
