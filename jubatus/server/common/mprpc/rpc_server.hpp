@@ -123,11 +123,28 @@ class invoker0 : public invoker_base {
   func_type f_;
 };
 
+template<>
+class invoker0<void> : public invoker_base {
+ public:
+  typedef jubatus::util::lang::function<void()> func_type;
+
+  explicit invoker0(const func_type& f)
+      : f_(f) {
+  }
+  virtual void invoke(msgpack::rpc::request& req) {
+    f_();
+  }
+
+ private:
+  func_type f_;
+};
+
 template<typename R>
 jubatus::util::lang::shared_ptr<invoker_base> make_invoker(
     const jubatus::util::lang::function<R()>& f) {
   return jubatus::util::lang::shared_ptr<invoker_base>(new invoker0<R>(f));
 }
+
 
 template<typename R, typename A1>
 class invoker1 : public invoker_base {
@@ -142,6 +159,24 @@ class invoker1 : public invoker_base {
     req.params().convert(&params);
     R retval = f_(params.template get<0>());
     req.result<R> (retval);
+  }
+
+ private:
+  func_type f_;
+};
+
+template<typename A1>
+class invoker1<void, A1> : public invoker_base {
+ public:
+  typedef jubatus::util::lang::function<void(A1)> func_type;
+
+  explicit invoker1(const func_type& f)
+      : f_(f) {
+  }
+  virtual void invoke(msgpack::rpc::request& req) {
+    msgpack::type::tuple<A1> params;
+    req.params().convert(&params);
+    f_(params.template get<0>());
   }
 
  private:
@@ -167,6 +202,24 @@ class invoker2 : public invoker_base {
     req.params().convert(&params);
     R retval = f_(params.template get<0>(), params.template get<1>());
     req.result<R>(retval);
+  }
+
+ private:
+  func_type f_;
+};
+
+template<typename A1, typename A2>
+class invoker2<void, A1, A2> : public invoker_base {
+ public:
+  typedef jubatus::util::lang::function<void(A1, A2)> func_type;
+
+  explicit invoker2(const func_type& f)
+      : f_(f) {
+  }
+  virtual void invoke(msgpack::rpc::request& req) {
+    msgpack::type::tuple<A1, A2> params;
+    req.params().convert(&params);
+    f_(params.template get<0>(), params.template get<1>());
   }
 
  private:
@@ -202,6 +255,27 @@ class invoker3 : public invoker_base {
   func_type f_;
 };
 
+template<typename A1, typename A2, typename A3>
+class invoker3<void, A1, A2, A3> : public invoker_base {
+ public:
+  typedef jubatus::util::lang::function<void(A1, A2, A3)> func_type;
+
+  explicit invoker3(const func_type& f)
+      : f_(f) {
+  }
+  virtual void invoke(msgpack::rpc::request& req) {
+    msgpack::type::tuple<A1, A2, A3> params;
+    req.params().convert(&params);
+    f_(
+        params.template get<0>(),
+        params.template get<1>(),
+        params.template get<2>());
+  }
+
+ private:
+  func_type f_;
+};
+
 template<typename R, typename A1, typename A2, typename A3>
 jubatus::util::lang::shared_ptr<invoker_base> make_invoker(
     const jubatus::util::lang::function<R(A1, A2, A3)>& f) {
@@ -226,6 +300,28 @@ class invoker4 : public invoker_base {
         params.template get<2>(),
         params.template get<3>());
     req.result<R>(retval);
+  }
+
+ private:
+  func_type f_;
+};
+
+template<typename A1, typename A2, typename A3, typename A4>
+class invoker4<void, A1, A2, A3, A4> : public invoker_base {
+ public:
+  typedef jubatus::util::lang::function<void(A1, A2, A3, A4)> func_type;
+
+  explicit invoker4(const func_type& f)
+      : f_(f) {
+  }
+  virtual void invoke(msgpack::rpc::request& req) {
+    msgpack::type::tuple<A1, A2, A3, A4> params;
+    req.params().convert(&params);
+    f_(
+        params.template get<0>(),
+        params.template get<1>(),
+        params.template get<2>(),
+        params.template get<3>());
   }
 
  private:
